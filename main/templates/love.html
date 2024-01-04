@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Birthday Card</title>
+    <!-- Google Font-->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins&display=swap"
+      rel="stylesheet"
+
+
+    />
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+
+    
+    <!-- Stylesheet -->
+    <style>
+        * {
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+  font-family: "Poppins", sans-serif;
+}
+body {
+  /* background-color: #fdbf00; */
+}
+body {
+  margin: 0;
+  background: #670247;
+  cursor: crosshair;
+}
+canvas{display:block}
+h1 {
+  position: absolute;
+  top: 20%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #fff;
+  font-family: "Source Sans Pro";
+  font-size: 5em;
+  font-weight: 900;
+  -webkit-user-select: none;
+  user-select: none;
+}
+h3 {
+  position: absolute;
+  top: 20%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #fff;
+  font-family: "Source Sans Pro";
+  font-size: 5em;
+  font-weight: 900;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+p{
+  color: white;
+  font-size: larger;
+  font-weight: bold;
+  text-align: center;
+  margin-top: 150px;
+}
+.btn{
+            font-size: x-large;
+            margin-top: 20px;
+            color: white;
+            background-color: blueviolet;
+            border-radius: 12px;
+            text-align: center;
+            align-items: center;
+        }
+        .btn:hover{
+            font-size: larger;
+            color: white;
+            margin-top: 20px;
+            margin-top: 20px;
+            background-color: rgb(205, 163, 245);
+            border-radius: 12px;
+            text-align: center;
+            align-items: center;
+            padding: 10px 20px;
+
+        }
+    </style>
+
+    <script>
+
+      const seeMore = () =>{
+        document.write("hello")
+      }
+        const PI2 = Math.PI * 2
+const random = (min, max) => Math.random() * (max - min + 1) + min | 0
+const timestamp = _ => new Date().getTime()
+
+// container
+class Birthday {
+  constructor() {
+    this.resize()
+
+    // create a lovely place to store the firework
+    this.fireworks = []
+    this.counter = 0
+
+  }
+  
+  resize() {
+    this.width = canvas.width = window.innerWidth
+    let center = this.width / 2 | 0
+    this.spawnA = center - center / 4 | 0
+    this.spawnB = center + center / 4 | 0
+    
+    this.height = canvas.height = window.innerHeight
+    this.spawnC = this.height * .1
+    this.spawnD = this.height * .5
+    
+  }
+  
+  onClick(evt) {
+     let x = evt.clientX || evt.touches && evt.touches[0].pageX
+     let y = evt.clientY || evt.touches && evt.touches[0].pageY
+     
+     let count = random(3,5)
+     for(let i = 0; i < count; i++) this.fireworks.push(new Firework(
+        random(this.spawnA, this.spawnB),
+        this.height,
+        x,
+        y,
+        random(0, 260),
+        random(30, 110)))
+          
+     this.counter = -1
+     
+  }
+  
+  update(delta) {
+    ctx.globalCompositeOperation = 'hard-light'
+    ctx.fillStyle = `rgba(20,20,20,${ 7 * delta })`
+    ctx.fillRect(0, 0, this.width, this.height)
+
+    ctx.globalCompositeOperation = 'lighter'
+    for (let firework of this.fireworks) firework.update(delta)
+
+    // if enough time passed... create new new firework
+    this.counter += delta * 3 // each second
+    if (this.counter >= 1) {
+      this.fireworks.push(new Firework(
+        random(this.spawnA, this.spawnB),
+        this.height,
+        random(0, this.width),
+        random(this.spawnC, this.spawnD),
+        random(0, 360),
+        random(30, 110)))
+      this.counter = 0
+    }
+
+    // remove the dead fireworks
+    if (this.fireworks.length > 1000) this.fireworks = this.fireworks.filter(firework => !firework.dead)
+
+  }
+}
+
+class Firework {
+  constructor(x, y, targetX, targetY, shade, offsprings) {
+    this.dead = false
+    this.offsprings = offsprings
+
+    this.x = x
+    this.y = y
+    this.targetX = targetX
+    this.targetY = targetY
+
+    this.shade = shade
+    this.history = []
+  }
+  update(delta) {
+    if (this.dead) return
+
+    let xDiff = this.targetX - this.x
+    let yDiff = this.targetY - this.y
+    if (Math.abs(xDiff) > 3 || Math.abs(yDiff) > 3) { // is still moving
+      this.x += xDiff * 2 * delta
+      this.y += yDiff * 2 * delta
+
+      this.history.push({
+        x: this.x,
+        y: this.y
+      })
+
+      if (this.history.length > 20) this.history.shift()
+
+    } else {
+      if (this.offsprings && !this.madeChilds) {
+        
+        let babies = this.offsprings / 2
+        for (let i = 0; i < babies; i++) {
+          let targetX = this.x + this.offsprings * Math.cos(PI2 * i / babies) | 0
+          let targetY = this.y + this.offsprings * Math.sin(PI2 * i / babies) | 0
+
+          birthday.fireworks.push(new Firework(this.x, this.y, targetX, targetY, this.shade, 0))
+
+        }
+
+      }
+      this.madeChilds = true
+      this.history.shift()
+    }
+    
+    if (this.history.length === 0) this.dead = true
+    else if (this.offsprings) { 
+        for (let i = 0; this.history.length > i; i++) {
+          let point = this.history[i]
+          ctx.beginPath()
+          ctx.fillStyle = 'hsl(' + this.shade + ',100%,' + i + '%)'
+          ctx.arc(point.x, point.y, 1, 0, PI2, false)
+          ctx.fill()
+        } 
+      } else {
+      ctx.beginPath()
+      ctx.fillStyle = 'hsl(' + this.shade + ',100%,50%)'
+      ctx.arc(this.x, this.y, 1, 0, PI2, false)
+      ctx.fill()
+    }
+
+  }
+}
+
+let canvas = document.getElementById('birthday')
+let ctx = canvas.getContext('2d')
+
+let then = timestamp()
+
+let birthday = new Birthday
+window.onresize = () => birthday.resize()
+document.onclick = evt => birthday.onClick(evt)
+document.ontouchstart = evt => birthday.onClick(evt)
+
+  ;(function loop(){
+  	requestAnimationFrame(loop)
+
+  	let now = timestamp()
+  	let delta = now - then
+
+    then = now
+    birthday.update(delta / 1000)
+  	
+
+  })()
+    </script>
+  </head>
+  <body>
+
+    <nav class="navbar navbar-expand-md navbar-dark bg-dark ">
+        <div class="navbar-collapse collapse w-100 order-1 order-md-0 dual-collapse2">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item active">
+                    <a class="navbar-brand mx-auto h1" href=" "><h2>Arzoo Industries</h2></a>
+                </li>
+                
+            </ul>
+        </div>
+        
+        <div class="navbar-collapse collapse w-100 order-3 dual-collapse2">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="#">Login</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link btn-1" href="#">Join Us</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <h1>Happy Birthday</h1>
+    <p>Dekha Tainu Pehli Pehli Baar Ve 🙈🙈 <br>
+      Hone Laga Dil Bekaraar Ve ❤️❤️ <br>
+      Rabba Mainu Ki Ho Gaya Dil Jaaniye..  😍😍 <br>
+      Haaye Mainu Ki Ho Gaya 🙉🙉 <br> <br> <br>
+    
+      Sunke Teri Baatein Sone Yaar Ve 🙉🙉 <br>
+      Maahi Mainu Tere Naal Pyaar Ve ❤️❤️<br>
+      Haaye Main Mar Jawaan Dil Jaaniye.. 😍😍<br>
+      Haaye Main Mar Jawaan 🙈🙈<br></p>
+
+      <form action="/page2">
+        <center><input type="submit" value="See More" class="btn"></center>
+      </form>
+
+      <!-- <center><button class="btn" onclick="seeMore()" >See More</button></center>
+<canvas id="birthday"></canvas> -->
+
+    
+  </body>
+</html>
